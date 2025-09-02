@@ -348,6 +348,12 @@
             <i class="fa fa-upload ml-2"></i>استيراد
           </span>
         </label>
+        <div class="bg-yellow-100 bg-opacity-20 border border-yellow-300 rounded-xl p-2 text-center">
+          <p class="text-yellow-200 text-xs">
+            <i class="fas fa-key ml-1"></i>
+            كلمة المرور: <span class="font-bold font-mono">123@123</span>
+          </p>
+        </div>
         <button id="btn-logout" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105">
           <i class="fa fa-right-from-bracket ml-2"></i>تسجيل الخروج
         </button>
@@ -561,26 +567,21 @@
     </div>
     
     <div id="auth-setup" class="hidden space-y-4">
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-700 mb-2">أنشئ كلمة مرور المدير</label>
-        <div class="relative">
-          <input id="new-admin-pass" type="password" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" placeholder="أدخل كلمة المرور" />
-          <button type="button" id="toggle-new-pass" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
-            <i class="fas fa-eye"></i>
-          </button>
+      <div class="text-center space-y-4">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+          <i class="fas fa-cog text-green-600 text-2xl"></i>
         </div>
-        <div class="password-strength mt-2">
-          <div class="flex space-x-1 space-x-reverse">
-            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="0"></div>
-            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="1"></div>
-            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="2"></div>
-            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="3"></div>
-          </div>
-          <p class="text-xs text-gray-500 mt-1">قوة كلمة المرور: <span class="font-medium" id="strength-text">ضعيفة</span></p>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">إعداد النظام</h3>
+          <p class="text-gray-600 text-sm">سيتم إعداد النظام بكلمة مرور افتراضية</p>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <p class="text-blue-800 font-medium">كلمة المرور الافتراضية:</p>
+          <p class="text-blue-600 text-2xl font-bold font-mono">123@123</p>
         </div>
       </div>
-      <button id="setup-admin-btn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg">
-        <i class="fas fa-shield-alt ml-2"></i>إنشاء الحساب
+      <button id="setup-admin-btn" class="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+        <i class="fas fa-rocket ml-2"></i>إعداد النظام
       </button>
     </div>
     
@@ -599,16 +600,22 @@
       </button>
     </div>
     
-    <div class="mt-6 pt-6 border-t border-gray-100">
-      <div class="flex items-center justify-center space-x-2 space-x-reverse">
-        <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-          <i class="fas fa-moon text-gray-600"></i>
-        </button>
-        <button id="language-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="تغيير اللغة">
-          <i class="fas fa-language text-gray-600"></i>
-        </button>
-      </div>
-    </div>
+            <div class="mt-6 pt-6 border-t border-gray-100">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 text-center">
+            <p class="text-blue-800 text-sm font-medium">
+              <i class="fas fa-info-circle ml-1"></i>
+              كلمة المرور الافتراضية: <span class="font-bold font-mono">123@123</span>
+            </p>
+          </div>
+          <div class="flex items-center justify-center space-x-2 space-x-reverse">
+            <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <i class="fas fa-moon text-gray-600"></i>
+            </button>
+            <button id="language-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="تغيير اللغة">
+              <i class="fas fa-language text-gray-600"></i>
+            </button>
+          </div>
+        </div>
   </div>
 
   <!-- Child Create/Edit Modal -->
@@ -909,13 +916,27 @@
     function hideAuth() { modal.style.display='none'; backdrop.style.display='none'; }
 
     async function setupAdmin(password) {
-      const { key, saltB64 } = await utils.deriveKeyFromPassword(password);
-      const hash = await utils.sha256(utils.strToU8(password));
+      // Use default password 123@123 for server-side authentication
+      const defaultPassword = '123@123';
+      const { key, saltB64 } = await utils.deriveKeyFromPassword(defaultPassword);
+      const hash = await utils.sha256(utils.strToU8(defaultPassword));
       localStorage.setItem('had_admin_salt', saltB64);
       localStorage.setItem('had_admin_hash', utils.b64(hash));
+      localStorage.setItem('had_admin_default_setup', 'true');
       dbLayer.setKey(key);
     }
     async function login(password) {
+      // Check if it's the default password first
+      if (password === '123@123') {
+        const salt = localStorage.getItem('had_admin_salt');
+        if (salt) {
+          const { key } = await utils.deriveKeyFromPassword('123@123', salt);
+          dbLayer.setKey(key);
+          return;
+        }
+      }
+      
+      // Fallback to normal authentication
       const salt = localStorage.getItem('had_admin_salt');
       const expected = localStorage.getItem('had_admin_hash');
       if (!salt || !expected) throw new Error('Admin not set');
@@ -932,42 +953,35 @@
     function init() {
       const hasAdmin = !!localStorage.getItem('had_admin_salt');
       showAuth();
+      
       if (!hasAdmin) {
-        document.getElementById('auth-title').textContent = 'إنشاء كلمة مرور المدير';
+        // Always setup with default password 123@123
+        document.getElementById('auth-title').textContent = 'إعداد النظام';
         setupArea.classList.remove('hidden');
         loginArea.classList.add('hidden');
+        
+        // Auto-setup with default password
         document.getElementById('setup-admin-btn').onclick = async () => {
-          const p = document.getElementById('new-admin-pass').value.trim();
-          if (p.length < 8) {
-            toast.show('كلمة المرور قصيرة (8 أحرف على الأقل).', 'error');
-            return;
-          }
-          
-          // Check password strength
-          let score = 0;
-          if (p.length >= 8) score++;
-          if (/[a-z]/.test(p)) score++;
-          if (/[A-Z]/.test(p)) score++;
-          if (/[0-9]/.test(p)) score++;
-          if (/[^A-Za-z0-9]/.test(p)) score++;
-          
-          if (score < 3) {
-            toast.show('كلمة المرور ضعيفة جداً. استخدم أحرف كبيرة وصغيرة وأرقام ورموز.', 'error');
-            return;
-          }
-          
           try {
-            await setupAdmin(p);
+            await setupAdmin('123@123');
             hideAuth();
-            toast.show('تم إنشاء الحساب بنجاح!', 'success');
+            toast.show('تم إعداد النظام بنجاح! كلمة المرور الافتراضية: 123@123', 'success');
             app.refreshAll();
           } catch (error) {
-            toast.show('حدث خطأ أثناء إنشاء الحساب', 'error');
+            toast.show('حدث خطأ أثناء إعداد النظام', 'error');
           }
         };
+        
+        // Auto-click setup button after 1 second
+        setTimeout(() => {
+          document.getElementById('setup-admin-btn').click();
+        }, 1000);
+        
       } else {
         setupArea.classList.add('hidden');
         loginArea.classList.remove('hidden');
+        document.getElementById('auth-title').textContent = 'تسجيل الدخول';
+        
         document.getElementById('login-btn').onclick = async () => {
           try {
             const p = document.getElementById('admin-pass').value;
@@ -1646,25 +1660,12 @@
   })();
 
   // =========
-  // Password Toggle & Strength
+  // Password Toggle
   // =========
   const passwordToggle = (() => {
     function init() {
-      const toggleNewPass = document.getElementById('toggle-new-pass');
       const togglePass = document.getElementById('toggle-pass');
-      const newPassInput = document.getElementById('new-admin-pass');
       const passInput = document.getElementById('admin-pass');
-      
-      if (toggleNewPass && newPassInput) {
-        toggleNewPass.onclick = () => {
-          const type = newPassInput.type === 'password' ? 'text' : 'password';
-          newPassInput.type = type;
-          toggleNewPass.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-        };
-        
-        // Password strength checker
-        newPassInput.addEventListener('input', checkPasswordStrength);
-      }
       
       if (togglePass && passInput) {
         togglePass.onclick = () => {
@@ -1673,41 +1674,6 @@
           togglePass.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
         };
       }
-    }
-    
-    function checkPasswordStrength(e) {
-      const password = e.target.value;
-      const strengthBars = document.querySelectorAll('[data-strength]');
-      const strengthText = document.getElementById('strength-text');
-      
-      let score = 0;
-      let feedback = '';
-      
-      if (password.length >= 8) score++;
-      if (/[a-z]/.test(password)) score++;
-      if (/[A-Z]/.test(password)) score++;
-      if (/[0-9]/.test(password)) score++;
-      if (/[^A-Za-z0-9]/.test(password)) score++;
-      
-      // Update bars
-      strengthBars.forEach((bar, index) => {
-        if (index < score) {
-          if (score <= 2) {
-            bar.style.backgroundColor = '#ef4444'; // red
-            feedback = 'ضعيفة';
-          } else if (score <= 3) {
-            bar.style.backgroundColor = '#f59e0b'; // yellow
-            feedback = 'متوسطة';
-          } else {
-            bar.style.backgroundColor = '#10b981'; // green
-            feedback = 'قوية';
-          }
-        } else {
-          bar.style.backgroundColor = '#e5e7eb'; // gray
-        }
-      });
-      
-      strengthText.textContent = feedback;
     }
     
     return { init };
@@ -1739,7 +1705,7 @@
     
     // Show welcome message
     setTimeout(() => {
-      toast.show('مرحباً بك في نظام إدارة حضانة الثوبة!', 'info', 3000);
+      toast.show('مرحباً بك في نظام إدارة حضانة الثوبة! كلمة المرور: 123@123', 'info', 5000);
     }, 1000);
   })();
   </script>
