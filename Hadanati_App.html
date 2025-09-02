@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>إدارة حضانة الثوبة (يعمل بدون إنترنت)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <meta name="theme-color" content="#3b82f6"/>
+  <style>
+    :root { 
+      color-scheme: light dark; 
+      --primary-color: #3b82f6;
+      --primary-hover: #2563eb;
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --warning-color: #f59e0b;
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+    }
+    
+    [data-theme="dark"] {
+      --bg-primary: #1e293b;
+      --bg-secondary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --border-color: #475569;
+    }
+    
+    body { 
+      font-family: "Cairo", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; 
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .sidebar-icon { transition: transform .15s ease-in-out; }
+    .sidebar-icon:hover { transform: scale(1.08); }
+    
+    .modal-backdrop { 
+      display:none; 
+      position:fixed; 
+      inset:0; 
+      background:rgba(0,0,0,.6); 
+      z-index:40; 
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .modal { 
+      display:none; 
+      position:fixed; 
+      inset-inline-start:50%; 
+      inset-block-start:50%; 
+      transform:translate(-50%, -50%); 
+      z-index:50; 
+      animation: slideIn 0.3s ease;
+    }
+    
+    .active-nav { background-color:var(--primary-color); color:#fff; }
+    
+    .btn { 
+      @apply rounded-lg py-2 px-4 transition-all duration-200 font-medium; 
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn-primary { 
+      @apply bg-blue-600 text-white hover:bg-blue-700; 
+      box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-green { 
+      @apply bg-green-600 text-white hover:bg-green-700; 
+      box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-red { 
+      @apply bg-red-600 text-white hover:bg-red-700; 
+      box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn-gray { 
+      @apply bg-gray-300 text-gray-900 hover:bg-gray-400; 
+    }
+    
+    .badge { 
+      @apply px-2 py-1 text-xs font-semibold rounded-full; 
+      transition: all 0.2s ease;
+    }
+    
+    .badge:hover {
+      transform: scale(1.05);
+    }
+    
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .toast {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+      min-width: 300px;
+      transform: translateX(100%);
+      animation: slideInRight 0.3s ease forwards;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .toast::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+    }
+    
+    .toast.success::before { background: var(--success-color); }
+    .toast.error::before { background: var(--danger-color); }
+    .toast.warning::before { background: var(--warning-color); }
+    .toast.info::before { background: var(--primary-color); }
+    
+    .toast.success { border-color: var(--success-color); }
+    .toast.error { border-color: var(--danger-color); }
+    .toast.warning { border-color: var(--warning-color); }
+    .toast.info { border-color: var(--primary-color); }
+    
+    .toast-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .toast-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    .toast-close:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+      from { 
+        opacity: 0;
+        transform: translate(-50%, -60%);
+      }
+      to { 
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    
+    @keyframes slideOutRight {
+      from { transform: translateX(0); }
+      to { transform: translateX(100%); }
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      
+      .mobile-menu-toggle {
+        display: block;
+      }
+    }
+    
+    /* Card hover effects */
+    .card {
+      transition: all 0.3s ease;
+      border: 1px solid var(--border-color);
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    /* Input focus effects */
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- App Shell -->
+  <div class="flex flex-row-reverse min-h-screen">
+    <!-- Mobile Menu Toggle -->
+    <button id="mobile-menu-toggle" class="fixed top-4 right-4 z-50 md:hidden bg-blue-600 text-white p-3 rounded-lg shadow-lg">
+      <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-20 md:w-64 bg-gradient-to-b from-blue-600 to-blue-700 text-white flex flex-col shadow-2xl transition-all duration-300 z-40">
+      <div class="h-20 flex items-center justify-center text-2xl font-bold relative">
+        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center md:ml-3">
+          <i class="fas fa-baby-carriage text-2xl text-white"></i>
+        </div>
+        <span class="hidden md:inline font-medium mr-3">حضانة الثوبة</span>
+      </div>
+      
+      <nav id="main-nav" class="flex-1 px-2 py-4 space-y-2">
+        <a id="nav-dashboard" href="#" class="flex items-center p-4 rounded-xl active-nav transition-all duration-200 hover:bg-blue-500 hover:scale-105" onclick="ui.showSection('dashboard');return false;">
+          <i class="fas fa-gauge fa-fw text-xl md:ml-4 sidebar-icon"></i>
+          <span class="hidden md:inline font-medium">لوحة التحكم</span>
+        </a>
+        <a id="nav-children" href="#" class="flex items-center p-4 rounded-xl hover:bg-blue-500 transition-all duration-200 hover:scale-105" onclick="ui.showSection('children');return false;">
+          <i class="fas fa-child fa-fw text-xl md:ml-4 sidebar-icon"></i>
+          <span class="hidden md:inline font-medium">الأطفال</span>
+        </a>
+        <a id="nav-attendance" href="#" class="flex items-center p-4 rounded-xl hover:bg-blue-500 transition-all duration-200 hover:scale-105" onclick="ui.showSection('attendance');return false;">
+          <i class="fas fa-clipboard-user fa-fw text-xl md:ml-4 sidebar-icon"></i>
+          <span class="hidden md:inline font-medium">الحضور</span>
+        </a>
+        <a id="nav-payments" href="#" class="flex items-center p-4 rounded-xl hover:bg-blue-500 transition-all duration-200 hover:scale-105" onclick="ui.showSection('payments');return false;">
+          <i class="fas fa-file-invoice-dollar fa-fw text-xl md:ml-4 sidebar-icon"></i>
+          <span class="hidden md:inline font-medium">المدفوعات</span>
+        </a>
+      </nav>
+
+      <!-- Footer actions -->
+      <div class="p-4 mt-auto space-y-3">
+        <button id="btn-export" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 backdrop-blur-sm">
+          <i class="fa fa-download ml-2"></i>تصدير
+        </button>
+        <label class="w-full">
+          <span class="sr-only">استيراد</span>
+          <input id="file-import" type="file" accept=".json,.had.json" class="hidden" />
+          <span class="w-full inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200 hover:scale-105">
+            <i class="fa fa-upload ml-2"></i>استيراد
+          </span>
+        </label>
+        <button id="btn-logout" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105">
+          <i class="fa fa-right-from-bracket ml-2"></i>تسجيل الخروج
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-4 md:p-8">
+      <!-- Dashboard -->
+      <section id="dashboard-section">
+        <div class="mb-8">
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">لوحة التحكم</h1>
+          <p class="text-gray-600">مرحباً بك في نظام إدارة حضانة الثوبة</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 card hover:shadow-xl">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm font-medium mb-2">الأطفال الحاضرون اليوم</p>
+                <p id="present-count" class="text-4xl font-bold text-blue-600">0</p>
+                <p class="text-green-600 text-sm mt-1">✓ جيد</p>
+              </div>
+              <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-users text-3xl text-blue-600"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 card hover:shadow-xl">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm font-medium mb-2">المدفوعات المتأخرة</p>
+                <p id="late-payment-count" class="text-4xl font-bold text-red-600">0</p>
+                <p class="text-red-600 text-sm mt-1">⚠️ يتطلب انتباه</p>
+              </div>
+              <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-3xl text-red-600"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 card hover:shadow-xl">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm font-medium mb-2">إجمالي الأطفال المسجلين</p>
+                <p id="total-children-count" class="text-4xl font-bold text-green-600">0</p>
+                <p class="text-green-600 text-sm mt-1">📊 إحصائيات</p>
+              </div>
+              <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-baby text-3xl text-green-600"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-semibold text-gray-800">قائمة المدفوعات المتأخرة</h2>
+              <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+              </div>
+            </div>
+            <div id="late-payment-list" class="space-y-3"></div>
+          </div>
+          
+          <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-semibold text-gray-800">التقارير</h2>
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-chart-bar text-blue-600"></i>
+              </div>
+            </div>
+            <div class="flex flex-col space-y-4">
+              <button id="btn-print-daily" class="bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center">
+                <i class="fas fa-print ml-2"></i> طباعة التقرير اليومي
+              </button>
+              <button id="btn-print-monthly" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center">
+                <i class="fas fa-print ml-2"></i> طباعة التقرير الشهري
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Children -->
+      <section id="children-section" class="hidden">
+        <div class="mb-8">
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">إدارة الأطفال</h1>
+          <p class="text-gray-600">إضافة وتعديل وحذف معلومات الأطفال المسجلين</p>
+        </div>
+        
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+          <div class="flex-1">
+            <div class="relative">
+              <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+              <input id="child-search" class="w-full md:w-96 p-4 pr-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" type="search" placeholder="بحث بالاسم أو الهاتف..." />
+            </div>
+          </div>
+          <button id="add-child-btn" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center">
+            <i class="fas fa-plus ml-2"></i>إضافة طفل جديد
+          </button>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-right">
+              <thead>
+                <tr class="border-b-2 border-gray-100">
+                  <th class="p-4 text-right font-semibold text-gray-700">الاسم الكامل</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">تاريخ الميلاد</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">هاتف ولي الأمر</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="children-list" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+          <p id="children-limit" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 hidden">
+            <i class="fas fa-exclamation-triangle ml-2"></i>
+            تم بلوغ الحد الأقصى (40 طفلاً).
+          </p>
+        </div>
+      </section>
+
+      <!-- Attendance -->
+      <section id="attendance-section" class="hidden">
+        <div class="mb-8">
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">متابعة الحضور</h1>
+          <p class="text-gray-600">تسجيل ومتابعة حضور الأطفال اليومي</p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-semibold text-gray-800">تسجيل حضور اليوم</h2>
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-clipboard-check text-blue-600"></i>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label for="child-select" class="block text-sm font-semibold text-gray-700 mb-2">اختر طفلاً</label>
+                <select id="child-select" class="block w-full py-3 px-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200">
+                  <option value="">-- اختر طفلاً --</option>
+                </select>
+              </div>
+              <div class="flex gap-3">
+                <button id="mark-present-btn" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                  <i class="fas fa-check ml-2"></i>حاضر
+                </button>
+                <button id="mark-absent-btn" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                  <i class="fas fa-times ml-2"></i>غائب
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 card">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-semibold text-gray-800">حضور يوم <span id="current-date" class="text-blue-600"></span></h2>
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-calendar-check text-green-600"></i>
+              </div>
+            </div>
+            <div id="daily-attendance-list" class="space-y-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Payments -->
+      <section id="payments-section" class="hidden">
+        <div class="mb-8">
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">إدارة المدفوعات</h1>
+          <p class="text-gray-600">متابعة وإدارة مدفوعات الأطفال</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-right">
+              <thead>
+                <tr class="border-b-2 border-gray-100">
+                  <th class="p-4 text-right font-semibold text-gray-700">اسم الطفل</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">المبلغ الإجمالي (د.م.)</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">المبلغ المدفوع (د.م.)</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">المبلغ المتبقي (د.م.)</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">الحالة</th>
+                  <th class="p-4 text-right font-semibold text-gray-700">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="payments-list" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Backdrop -->
+  <div id="modal-backdrop" class="modal-backdrop"></div>
+
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="modal bg-white w-11/12 md:max-w-md p-8 rounded-2xl shadow-2xl text-right border border-gray-100">
+    <div class="text-center mb-6">
+      <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-baby-carriage text-3xl text-white"></i>
+      </div>
+      <h2 class="text-3xl font-bold text-gray-800" id="auth-title">تسجيل الدخول</h2>
+      <p class="text-gray-600 mt-2">مرحباً بك في نظام إدارة حضانة الثوبة</p>
+    </div>
+    
+    <div id="auth-setup" class="hidden space-y-4">
+      <div class="space-y-2">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">أنشئ كلمة مرور المدير</label>
+        <div class="relative">
+          <input id="new-admin-pass" type="password" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" placeholder="أدخل كلمة المرور" />
+          <button type="button" id="toggle-new-pass" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <div class="password-strength mt-2">
+          <div class="flex space-x-1 space-x-reverse">
+            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="0"></div>
+            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="1"></div>
+            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="2"></div>
+            <div class="h-2 flex-1 bg-gray-200 rounded-full transition-all duration-300" data-strength="3"></div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">قوة كلمة المرور: <span class="font-medium" id="strength-text">ضعيفة</span></p>
+        </div>
+      </div>
+      <button id="setup-admin-btn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg">
+        <i class="fas fa-shield-alt ml-2"></i>إنشاء الحساب
+      </button>
+    </div>
+    
+    <div id="auth-login" class="space-y-4">
+      <div class="space-y-2">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">كلمة المرور</label>
+        <div class="relative">
+          <input id="admin-pass" type="password" class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" placeholder="أدخل كلمة المرور" />
+          <button type="button" id="toggle-pass" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <button id="login-btn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg">
+        <i class="fas fa-sign-in-alt ml-2"></i>تسجيل الدخول
+      </button>
+    </div>
+    
+    <div class="mt-6 pt-6 border-t border-gray-100">
+      <div class="flex items-center justify-center space-x-2 space-x-reverse">
+        <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+          <i class="fas fa-moon text-gray-600"></i>
+        </button>
+        <button id="language-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="تغيير اللغة">
+          <i class="fas fa-language text-gray-600"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Child Create/Edit Modal -->
+  <div id="child-modal" class="modal bg-white w-11/12 md:max-w-lg p-8 rounded-2xl shadow-2xl text-right border border-gray-100">
+    <div class="flex items-center justify-between mb-6">
+      <h2 id="modal-title" class="text-2xl font-bold text-gray-800">إضافة طفل جديد</h2>
+      <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+        <i class="fas fa-child text-blue-600"></i>
+      </div>
+    </div>
+    
+    <form id="child-form">
+      <input type="hidden" id="child-id" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">الاسم الكامل *</label>
+          <input type="text" id="fullName" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" required />
+        </div>
+        <div>
+          <label for="dob" class="block text-sm font-semibold text-gray-700 mb-2">تاريخ الميلاد *</label>
+          <input type="date" id="dob" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" required />
+        </div>
+        <div>
+          <label for="parentContact" class="block text-sm font-semibold text-gray-700 mb-2">رقم هاتف ولي الأمر *</label>
+          <input type="tel" id="parentContact" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" required />
+        </div>
+        <div>
+          <label for="address" class="block text-sm font-semibold text-gray-700 mb-2">العنوان *</label>
+          <input type="text" id="address" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200" required />
+        </div>
+        <div class="md:col-span-2">
+          <label for="notes" class="block text-sm font-semibold text-gray-700 mb-2">ملاحظات خاصة (حساسية، إلخ)</label>
+          <textarea id="notes" rows="3" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 resize-none"></textarea>
+        </div>
+      </div>
+      <div class="mt-8 flex justify-start gap-3">
+        <button type="button" id="cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-xl font-medium transition-all duration-200">
+          <i class="fas fa-times ml-2"></i>إلغاء
+        </button>
+        <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg">
+          <i class="fas fa-save ml-2"></i>حفظ
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Child View Modal -->
+  <div id="view-child-modal" class="modal bg-white w-11/12 md:max-w-md p-6 rounded-2xl shadow-2xl text-right border border-gray-100">
+    <div class="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+      <h2 id="view-modal-title" class="text-2xl font-bold text-gray-800">تفاصيل الطفل</h2>
+      <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+        <i class="fas fa-user text-blue-600"></i>
+      </div>
+    </div>
+    <div id="child-details-content" class="mt-4 space-y-4 text-gray-700"></div>
+    <div class="mt-8 flex justify-start">
+      <button type="button" id="close-view-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-6 rounded-xl font-medium transition-all duration-200">
+        <i class="fas fa-times ml-2"></i>إغلاق
+      </button>
+    </div>
+  </div>
+
+  <script>
+  // =========================
+  // Utils (Encoding & Crypto)
+  // =========================
+  const utils = (() => {
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
+
+    async function sha256(buf) {
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      return new Uint8Array(hash);
+    }
+    function strToU8(s) { return enc.encode(s); }
+    function u8ToStr(u) { return dec.decode(u); }
+    function b64(b) { return btoa(String.fromCharCode(...b)); }
+    function b64d(s) { return Uint8Array.from(atob(s), c => c.charCodeAt(0)); }
+
+    async function deriveKeyFromPassword(password, saltB64) {
+      const salt = saltB64 ? b64d(saltB64) : crypto.getRandomValues(new Uint8Array(16));
+      const keyMaterial = await crypto.subtle.importKey('raw', strToU8(password), {name:'PBKDF2'}, false, ['deriveKey']);
+      const key = await crypto.subtle.deriveKey(
+        {name:'PBKDF2', salt, iterations:150000, hash:'SHA-256'},
+        keyMaterial, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
+      );
+      return { key, saltB64: b64(salt) };
+    }
+
+    async function encryptJSON(key, obj) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const data = strToU8(JSON.stringify(obj));
+      const cipher = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, data);
+      return { iv: b64(iv), payload: b64(new Uint8Array(cipher)) };
+    }
+    async function decryptJSON(key, {iv, payload}) {
+      const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv: b64d(iv)}, key, b64d(payload));
+      return JSON.parse(u8ToStr(new Uint8Array(plain)));
+    }
+
+    return { sha256, strToU8, b64, b64d, deriveKeyFromPassword, encryptJSON, decryptJSON };
+  })();
+
+  // ===========
+  // UI Helpers
+  // ===========
+  const ui = (() => {
+    const sections = {
+      dashboard: document.getElementById('dashboard-section'),
+      children: document.getElementById('children-section'),
+      attendance: document.getElementById('attendance-section'),
+      payments: document.getElementById('payments-section'),
+    };
+    const nav = document.getElementById('main-nav');
+
+    function showSection(name) {
+      if (!sections[name]) return;
+      Object.values(sections).forEach(s => s.classList.add('hidden'));
+      sections[name].classList.remove('hidden');
+      nav.querySelectorAll('a').forEach(a => a.classList.remove('active-nav'));
+      const link = document.getElementById(`nav-${name}`);
+      if (link) link.classList.add('active-nav');
+    }
+
+    function show(el) { el.style.display = 'block'; document.getElementById('modal-backdrop').style.display = 'block'; }
+    function hide(el) { el.style.display = 'none'; document.getElementById('modal-backdrop').style.display = 'none'; }
+
+    return { showSection, show, hide };
+  })();
+
+  // ===================
+  // IndexedDB (Encrypted)
+  // ===================
+  const dbLayer = (() => {
+    let db = null;
+    let ENC_KEY = null;
+
+    function setKey(key) { ENC_KEY = key; }
+    function getKey() { return ENC_KEY; }
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('hadanati_db', 1);
+        req.onupgradeneeded = (e) => {
+          db = e.target.result;
+          if (!db.objectStoreNames.contains('children')) {
+            const s = db.createObjectStore('children', { keyPath: 'id', autoIncrement: true });
+            // clear indexes—content will be encrypted. If you need search, store a "name_search" in plaintext minimal form.
+            s.createIndex('name_search', 'name_search', { unique: false });
+          }
+          if (!db.objectStoreNames.contains('payments')) {
+            const s = db.createObjectStore('payments', { keyPath: 'childId' });
+          }
+          if (!db.objectStoreNames.contains('attendance')) {
+            const s = db.createObjectStore('attendance', { keyPath: ['date','childId'] });
+            s.createIndex('by_date', 'date', { unique: false });
+          }
+        };
+        req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    // Generic helpers
+    function tx(storeNames, mode='readonly') { return db.transaction(storeNames, mode); }
+    function put(storeName, value) {
+      return new Promise((res, rej) => {
+        const req = tx([storeName],'readwrite').objectStore(storeName).put(value);
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+    }
+    function add(storeName, value) {
+      return new Promise((res, rej) => {
+        const req = tx([storeName],'readwrite').objectStore(storeName).add(value);
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+    }
+    function getAll(storeName) {
+      return new Promise((res, rej) => {
+        const req = tx([storeName]).objectStore(storeName).getAll();
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+    }
+    function get(storeName, key) {
+      return new Promise((res, rej) => {
+        const req = tx([storeName]).objectStore(storeName).get(key);
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+    }
+    function del(storeName, key) {
+      return new Promise((res, rej) => {
+        const req = tx([storeName],'readwrite').objectStore(storeName).delete(key);
+        req.onsuccess = () => res();
+        req.onerror = () => rej(req.error);
+      });
+    }
+
+    // Domain: CHILDREN (encrypted object in {enc, name_search})
+    async function addChild(plainChild) {
+      if (!ENC_KEY) throw new Error('Not authenticated');
+      const enc = await utils.encryptJSON(ENC_KEY, plainChild);
+      const rec = { enc, name_search: (plainChild.fullName || '').trim().toLowerCase() };
+      const id = await add('children', rec);
+      // default payment row
+      const pay = { childId: id, amountDue: 2000, amountPaid: 0, status: 'متأخر' };
+      await put('payments', pay);
+      return id;
+    }
+
+    async function updateChild(id, updatesPlain) {
+      const row = await get('children', id);
+      if (!row) return;
+      const current = await utils.decryptJSON(ENC_KEY, row.enc);
+      const merged = {...current, ...updatesPlain};
+      const enc = await utils.encryptJSON(ENC_KEY, merged);
+      await put('children', { id, enc, name_search: (merged.fullName||'').trim().toLowerCase() });
+    }
+
+    async function removeChild(id) {
+      await del('children', id);
+      await del('payments', id);
+      // remove attendance rows for this child: read all by scanning (few rows, max 40 children -> OK)
+      const allAtt = await getAll('attendance');
+      const toDelete = allAtt.filter(r => r.childId === id);
+      for (const r of toDelete) {
+        await del('attendance', [r.date, r.childId]);
+      }
+    }
+
+    async function listChildren() {
+      const rows = await getAll('children');
+      const out = [];
+      for (const r of rows) {
+        const obj = await utils.decryptJSON(ENC_KEY, r.enc);
+        out.push({ id: r.id, ...obj });
+      }
+      return out;
+    }
+
+    async function searchChildren(q) {
+      if (!q) return listChildren();
+      const rows = await getAll('children');
+      const needle = q.trim().toLowerCase();
+      const out = [];
+      for (const r of rows) {
+        const obj = await utils.decryptJSON(ENC_KEY, r.enc);
+        const hay = `${obj.fullName||''} ${obj.parentContact||''}`.toLowerCase();
+        if (hay.includes(needle)) out.push({ id:r.id, ...obj });
+      }
+      return out;
+    }
+
+    // Domain: PAYMENTS (not encrypted — montants standards; chiffrer si tu veux)
+    async function getPayments() { return await getAll('payments'); }
+    async function updatePayment(childId, amountDue, amountPaid) {
+      const status = (Number(amountPaid)||0) >= (Number(amountDue)||0) ? 'مدفوع' : 'متأخر';
+      await put('payments', { childId, amountDue:Number(amountDue)||0, amountPaid:Number(amountPaid)||0, status });
+    }
+
+    // Domain: ATTENDANCE (not encrypted; optionnel de chiffrer)
+    async function markAttendance(date, childId, status) {
+      await put('attendance', { date, childId, status });
+    }
+    async function getAttendanceByDate(date) {
+      const all = await getAll('attendance');
+      return all.filter(a => a.date === date);
+    }
+    async function getAllAttendance() { return await getAll('attendance'); }
+
+    return {
+      openDB, setKey, getKey,
+      addChild, updateChild, removeChild, listChildren, searchChildren,
+      getPayments, updatePayment,
+      markAttendance, getAttendanceByDate, getAllAttendance,
+      // raw helper (for backup)
+      _getAll: getAll
+    };
+  })();
+
+  // =====================
+  // Auth (offline admin)
+  // =====================
+  const auth = (() => {
+    const modal = document.getElementById('auth-modal');
+    const backdrop = document.getElementById('modal-backdrop');
+    const setupArea = document.getElementById('auth-setup');
+    const loginArea = document.getElementById('auth-login');
+
+    function showAuth() { modal.style.display='block'; backdrop.style.display='block'; }
+    function hideAuth() { modal.style.display='none'; backdrop.style.display='none'; }
+
+    async function setupAdmin(password) {
+      const { key, saltB64 } = await utils.deriveKeyFromPassword(password);
+      const hash = await utils.sha256(utils.strToU8(password));
+      localStorage.setItem('had_admin_salt', saltB64);
+      localStorage.setItem('had_admin_hash', utils.b64(hash));
+      dbLayer.setKey(key);
+    }
+    async function login(password) {
+      const salt = localStorage.getItem('had_admin_salt');
+      const expected = localStorage.getItem('had_admin_hash');
+      if (!salt || !expected) throw new Error('Admin not set');
+      const { key } = await utils.deriveKeyFromPassword(password, salt);
+      const got = utils.b64(await utils.sha256(utils.strToU8(password)));
+      if (got !== expected) throw new Error('Wrong password');
+      dbLayer.setKey(key);
+    }
+    function logout() {
+      dbLayer.setKey(null);
+      showAuth();
+    }
+
+    function init() {
+      const hasAdmin = !!localStorage.getItem('had_admin_salt');
+      showAuth();
+      if (!hasAdmin) {
+        document.getElementById('auth-title').textContent = 'إنشاء كلمة مرور المدير';
+        setupArea.classList.remove('hidden');
+        loginArea.classList.add('hidden');
+        document.getElementById('setup-admin-btn').onclick = async () => {
+          const p = document.getElementById('new-admin-pass').value.trim();
+          if (p.length < 8) {
+            toast.show('كلمة المرور قصيرة (8 أحرف على الأقل).', 'error');
+            return;
+          }
+          
+          // Check password strength
+          let score = 0;
+          if (p.length >= 8) score++;
+          if (/[a-z]/.test(p)) score++;
+          if (/[A-Z]/.test(p)) score++;
+          if (/[0-9]/.test(p)) score++;
+          if (/[^A-Za-z0-9]/.test(p)) score++;
+          
+          if (score < 3) {
+            toast.show('كلمة المرور ضعيفة جداً. استخدم أحرف كبيرة وصغيرة وأرقام ورموز.', 'error');
+            return;
+          }
+          
+          try {
+            await setupAdmin(p);
+            hideAuth();
+            toast.show('تم إنشاء الحساب بنجاح!', 'success');
+            app.refreshAll();
+          } catch (error) {
+            toast.show('حدث خطأ أثناء إنشاء الحساب', 'error');
+          }
+        };
+      } else {
+        setupArea.classList.add('hidden');
+        loginArea.classList.remove('hidden');
+        document.getElementById('login-btn').onclick = async () => {
+          try {
+            const p = document.getElementById('admin-pass').value;
+            if (!p.trim()) {
+              toast.show('يرجى إدخال كلمة المرور', 'warning');
+              return;
+            }
+            await login(p);
+            hideAuth();
+            toast.show('تم تسجيل الدخول بنجاح!', 'success');
+            app.refreshAll();
+          } catch (e) { 
+            toast.show('كلمة مرور غير صحيحة', 'error');
+          }
+        };
+      }
+    }
+
+    return { init, logout };
+  })();
+
+  // =========
+  // Toast & Loading System
+  // =========
+  const toast = (() => {
+    const container = document.getElementById('toast-container');
+    
+    function show(message, type = 'info', duration = 5000) {
+      const toastEl = document.createElement('div');
+      toastEl.className = `toast ${type}`;
+      
+      const icon = {
+        success: 'fas fa-check-circle',
+        error: 'fas fa-exclamation-circle',
+        warning: 'fas fa-exclamation-triangle',
+        info: 'fas fa-info-circle'
+      }[type];
+      
+      toastEl.innerHTML = `
+        <div class="toast-header">
+          <div class="flex items-center">
+            <i class="${icon} ml-2 text-${type === 'success' ? 'green' : type === 'error' ? 'red' : type === 'warning' ? 'yellow' : 'blue'}-600"></i>
+            <span class="toast-title">${type === 'success' ? 'نجح' : type === 'error' ? 'خطأ' : type === 'warning' ? 'تحذير' : 'معلومات'}</span>
+          </div>
+          <button class="toast-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="toast-message">${message}</div>
+      `;
+      
+      container.appendChild(toastEl);
+      
+      // Auto remove
+      setTimeout(() => {
+        if (toastEl.parentNode) {
+          toastEl.style.animation = 'slideOutRight 0.3s ease forwards';
+          setTimeout(() => {
+            if (toastEl.parentNode) {
+              toastEl.remove();
+            }
+          }, 300);
+        }
+      }, duration);
+      
+      // Manual close
+      toastEl.querySelector('.toast-close').onclick = () => {
+        toastEl.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(() => {
+          if (toastEl.parentNode) {
+            toastEl.remove();
+          }
+        }, 300);
+      };
+    }
+    
+    function showLoading(message = 'جاري التحميل...') {
+      const loadingEl = document.createElement('div');
+      loadingEl.className = 'toast info';
+      loadingEl.innerHTML = `
+        <div class="toast-header">
+          <div class="flex items-center">
+            <div class="spinner ml-2"></div>
+            <span class="toast-title">جاري التحميل</span>
+          </div>
+        </div>
+        <div class="toast-message">${message}</div>
+      `;
+      
+      container.appendChild(loadingEl);
+      return loadingEl;
+    }
+    
+    function hideLoading(loadingEl) {
+      if (loadingEl && loadingEl.parentNode) {
+        loadingEl.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(() => {
+          if (loadingEl.parentNode) {
+            loadingEl.remove();
+          }
+        }, 300);
+      }
+    }
+    
+    return { show, showLoading, hideLoading };
+  })();
+
+  // =========
+  // Theme & Language System
+  // =========
+  const theme = (() => {
+    const toggleBtn = document.getElementById('theme-toggle');
+    const languageBtn = document.getElementById('language-toggle');
+    const icon = toggleBtn.querySelector('i');
+    
+    function init() {
+      const savedTheme = localStorage.getItem('hadanati-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateIcon(savedTheme);
+      
+      toggleBtn.onclick = () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('hadanati-theme', newTheme);
+        updateIcon(newTheme);
+        toast.show(`تم التبديل إلى ${newTheme === 'dark' ? 'الوضع المظلم' : 'الوضع المضيء'}`, 'info');
+      };
+      
+      languageBtn.onclick = () => {
+        const currentLang = document.documentElement.getAttribute('lang');
+        const newLang = currentLang === 'ar' ? 'en' : 'ar';
+        document.documentElement.setAttribute('lang', newLang);
+        document.documentElement.setAttribute('dir', newLang === 'ar' ? 'rtl' : 'ltr');
+        localStorage.setItem('hadanati-language', newLang);
+        toast.show(`تم التبديل إلى ${newLang === 'ar' ? 'العربية' : 'English'}`, 'info');
+        // Reload to apply language changes
+        setTimeout(() => location.reload(), 1000);
+      };
+    }
+    
+    function updateIcon(theme) {
+      if (theme === 'dark') {
+        icon.className = 'fas fa-sun text-yellow-500';
+      } else {
+        icon.className = 'fas fa-moon text-gray-600';
+      }
+    }
+    
+    return { init };
+  })();
+
+  // =========
+  // The App
+  // =========
+  const app = (() => {
+    // DOM refs
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const childModal = document.getElementById('child-modal');
+    const viewModal = document.getElementById('view-child-modal');
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+
+    const childForm = document.getElementById('child-form');
+    const childrenList = document.getElementById('children-list');
+    const childSelect = document.getElementById('child-select');
+    const attendanceList = document.getElementById('daily-attendance-list');
+    const paymentsList = document.getElementById('payments-list');
+    const presentCount = document.getElementById('present-count');
+    const latePaymentCount = document.getElementById('late-payment-count');
+    const totalChildrenCount = document.getElementById('total-children-count');
+    const latePaymentList = document.getElementById('late-payment-list');
+    const currentDateSpan = document.getElementById('current-date');
+    const childrenLimitMsg = document.getElementById('children-limit');
+
+    // Actions
+    document.getElementById('add-child-btn').addEventListener('click', () => openChildModal());
+    document.getElementById('cancel-btn').addEventListener('click', () => ui.hide(childModal));
+    document.getElementById('close-view-btn').addEventListener('click', () => ui.hide(viewModal));
+    modalBackdrop.addEventListener('click', () => { ui.hide(childModal); ui.hide(viewModal); });
+    
+    // Mobile menu toggle
+    mobileMenuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && 
+          !sidebar.contains(e.target) && 
+          !mobileMenuToggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+
+    // Attendance btns
+    document.getElementById('mark-present-btn').addEventListener('click', () => markAttendance('present'));
+    document.getElementById('mark-absent-btn').addEventListener('click', () => markAttendance('absent'));
+
+    // Payments update delegation
+    paymentsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      if (btn.classList.contains('update-payment-btn')) {
+        const id = parseInt(btn.dataset.id);
+        const row = btn.closest('tr');
+        const due = row.querySelector('input[data-field="due"]').value;
+        const paid = row.querySelector('input[data-field="paid"]').value;
+        
+        if (due < 0 || paid < 0) {
+          toast.show('لا يمكن إدخال قيم سالبة', 'warning');
+          return;
+        }
+        
+        try {
+          dbLayer.updatePayment(id, due, paid).then(() => {
+            toast.show('تم تحديث الدفع بنجاح!', 'success');
+            refreshAll();
+          });
+        } catch (error) {
+          toast.show('حدث خطأ أثناء تحديث الدفع', 'error');
+        }
+      }
+    });
+
+    // Export / Import / Logout
+    document.getElementById('btn-export').addEventListener('click', exportEncryptedBackup);
+    document.getElementById('file-import').addEventListener('change', importEncryptedBackup);
+    document.getElementById('btn-logout').addEventListener('click', auth.logout);
+
+    // Search
+    document.getElementById('child-search').addEventListener('input', refreshChildrenTable);
+
+    // Print
+    document.getElementById('btn-print-daily').addEventListener('click', () => window.print());
+    document.getElementById('btn-print-monthly').addEventListener('click', () => window.print());
+
+    // Child form submit
+    childForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const id = document.getElementById('child-id').value;
+      const d = {
+        fullName: document.getElementById('fullName').value.trim(),
+        dob: document.getElementById('dob').value,
+        parentContact: document.getElementById('parentContact').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        notes: document.getElementById('notes').value.trim()
+      };
+      
+      // Validation
+      if (!d.fullName || !d.dob || !d.parentContact || !d.address) {
+        toast.show('رجاءً أكمل جميع الحقول المطلوبة.', 'warning');
+        return;
+      }
+      
+      // Phone validation
+      if (!/^[0-9+\-\s()]+$/.test(d.parentContact)) {
+        toast.show('يرجى إدخال رقم هاتف صحيح', 'warning');
+        return;
+      }
+      
+      // Date validation
+      const today = new Date();
+      const birthDate = new Date(d.dob);
+      if (birthDate >= today) {
+        toast.show('تاريخ الميلاد يجب أن يكون في الماضي', 'warning');
+        return;
+      }
+      
+      try {
+        if (id) {
+          await dbLayer.updateChild(parseInt(id), d);
+          toast.show('تم تحديث معلومات الطفل بنجاح!', 'success');
+        } else {
+          // enforce 40 children limit
+          const total = (await dbLayer.listChildren()).length;
+          if (total >= 40) { 
+            childrenLimitMsg.classList.remove('hidden'); 
+            toast.show('تم بلوغ الحد الأقصى (40 طفلاً).', 'warning');
+            return; 
+          }
+          await dbLayer.addChild(d);
+          childrenLimitMsg.classList.add('hidden');
+          toast.show('تم إضافة الطفل بنجاح!', 'success');
+        }
+        ui.hide(childModal);
+        refreshAll();
+      } catch (error) {
+        toast.show('حدث خطأ أثناء حفظ البيانات', 'error');
+      }
+    });
+    
+    // Real-time form validation
+    function initFormValidation() {
+      const fullNameInput = document.getElementById('fullName');
+      const parentContactInput = document.getElementById('parentContact');
+      
+      if (fullNameInput) {
+        fullNameInput.addEventListener('input', (e) => {
+          const value = e.target.value.trim();
+          if (value.length > 0) {
+            e.target.classList.remove('border-red-500');
+            e.target.classList.add('border-green-500');
+          } else {
+            e.target.classList.remove('border-green-500');
+            e.target.classList.add('border-red-500');
+          }
+        });
+      }
+      
+      if (parentContactInput) {
+        parentContactInput.addEventListener('input', (e) => {
+          const value = e.target.value.trim();
+          if (/^[0-9+\-\s()]+$/.test(value) && value.length > 0) {
+            e.target.classList.remove('border-red-500');
+            e.target.classList.add('border-green-500');
+          } else if (value.length > 0) {
+            e.target.classList.remove('border-green-500');
+            e.target.classList.add('border-red-500');
+          } else {
+            e.target.classList.remove('border-red-500', 'border-green-500');
+            e.target.classList.add('border-gray-200');
+          }
+        });
+      }
+    }
+
+    function openChildModal(child = null) {
+      childForm.reset();
+      document.getElementById('child-id').value = '';
+      
+      // Reset form validation states
+      const inputs = childForm.querySelectorAll('input, textarea');
+      inputs.forEach(input => {
+        input.classList.remove('border-red-500', 'border-green-500');
+        input.classList.add('border-gray-200');
+      });
+      
+      if (child) {
+        document.getElementById('modal-title').textContent = 'تعديل معلومات الطفل';
+        document.getElementById('child-id').value = child.id;
+        document.getElementById('fullName').value = child.fullName || '';
+        document.getElementById('dob').value = child.dob || '';
+        document.getElementById('parentContact').value = child.parentContact || '';
+        document.getElementById('address').value = child.address || '';
+        document.getElementById('notes').value = child.notes || '';
+      } else {
+        document.getElementById('modal-title').textContent = 'إضافة طفل جديد';
+      }
+      ui.show(childModal);
+    }
+
+    async function refreshChildrenTable() {
+      const q = document.getElementById('child-search').value;
+      const children = await dbLayer.searchChildren(q);
+      childrenList.innerHTML = '';
+      for (const ch of children) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition-colors duration-200';
+        tr.innerHTML = `
+          <td class="p-4 font-medium text-gray-800">${ch.fullName || ''}</td>
+          <td class="p-4 text-gray-600">${ch.dob ? new Date(ch.dob).toLocaleDateString('ar-MA') : ''}</td>
+          <td class="p-4 text-gray-600">${ch.parentContact || ''}</td>
+          <td class="p-4">
+            <div class="flex items-center justify-start space-x-2 space-x-reverse">
+              <button class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200 view-btn" data-id="${ch.id}" title="عرض التفاصيل">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-all duration-200 edit-btn" data-id="${ch.id}" title="تعديل">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200 delete-btn" data-id="${ch.id}" title="حذف">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        childrenList.appendChild(tr);
+      }
+      // action handlers (delegation via tbody)
+      childrenList.onclick = async (ev) => {
+        const btn = ev.target.closest('button');
+        if (!btn) return;
+        const id = parseInt(btn.dataset.id);
+        if (btn.classList.contains('delete-btn')) {
+          if (confirm('هل أنت متأكد من حذف هذا الطفل وكل بياناته؟')) {
+            try {
+              await dbLayer.removeChild(id);
+              toast.show('تم حذف الطفل بنجاح!', 'success');
+              refreshAll();
+            } catch (error) {
+              toast.show('حدث خطأ أثناء الحذف', 'error');
+            }
+          }
+        } else if (btn.classList.contains('edit-btn')) {
+          const all = await dbLayer.listChildren();
+          openChildModal(all.find(c => c.id === id));
+        } else if (btn.classList.contains('view-btn')) {
+          const all = await dbLayer.listChildren();
+          const c = all.find(x => x.id === id);
+          viewChild(c);
+        }
+      };
+    }
+
+    function viewChild(child) {
+      const html = `
+        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+          <div class="flex items-center space-x-3 space-x-reverse mb-3">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-user text-blue-600"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-800">${child.fullName || ''}</h3>
+              <p class="text-sm text-gray-500">معلومات الطفل</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="space-y-3">
+          <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+            <span class="font-medium text-gray-700">الاسم:</span>
+            <span class="text-gray-800">${child.fullName || ''}</span>
+          </div>
+          
+          <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+            <span class="font-medium text-gray-700">تاريخ الميلاد:</span>
+            <span class="text-gray-800">${child.dob ? new Date(child.dob).toLocaleDateString('ar-MA') : ''}</span>
+          </div>
+          
+          <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+            <span class="font-medium text-gray-700">هاتف ولي الأمر:</span>
+            <span class="text-gray-800">${child.parentContact || ''}</span>
+          </div>
+          
+          <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+            <span class="font-medium text-gray-700">العنوان:</span>
+            <span class="text-gray-800">${child.address || ''}</span>
+          </div>
+          
+          <div class="flex items-start justify-between p-3 bg-white border border-gray-200 rounded-lg">
+            <span class="font-medium text-gray-700">ملاحظات:</span>
+            <span class="text-gray-800 text-right">${child.notes || 'لا يوجد'}</span>
+          </div>
+        </div>
+      `;
+      document.getElementById('child-details-content').innerHTML = html;
+      ui.show(viewModal);
+    }
+
+    async function refreshAttendance() {
+      // header date
+      const today = new Date().toISOString().slice(0,10);
+      currentDateSpan.textContent = new Date(today).toLocaleDateString('ar-MA', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+      attendanceList.innerHTML = '';
+
+      const [children, todayAtt] = await Promise.all([dbLayer.listChildren(), dbLayer.getAttendanceByDate(today)]);
+      // build quick map
+      const statusById = new Map(todayAtt.map(a => [a.childId, a.status]));
+      for (const ch of children) {
+        const status = statusById.get(ch.id) || 'pending';
+        let badge = `<span class="badge bg-gray-200 text-gray-800">لم يسجل</span>`;
+        if (status === 'present') badge = `<span class="badge bg-green-200 text-green-800">حاضر</span>`;
+        if (status === 'absent')  badge = `<span class="badge bg-red-200 text-red-800">غائب</span>`;
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-4 rounded-xl hover:bg-gray-50 transition-all duration-200 border border-gray-100';
+        div.innerHTML = `
+          <div class="flex items-center space-x-3 space-x-reverse">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <i class="fas fa-child text-blue-600"></i>
+            </div>
+            <p class="font-medium text-gray-800">${ch.fullName}</p>
+          </div>
+          ${badge}
+        `;
+        attendanceList.appendChild(div);
+      }
+
+      // fill select
+      childSelect.innerHTML = `<option value="">-- اختر --</option>`;
+      for (const ch of children) {
+        const opt = document.createElement('option');
+        opt.value = ch.id; opt.textContent = ch.fullName;
+        childSelect.appendChild(opt);
+      }
+    }
+
+    async function markAttendance(status) {
+      const id = parseInt(childSelect.value);
+      if (!id) {
+        toast.show('الرجاء اختيار طفل.', 'warning');
+        return;
+      }
+      
+      try {
+        const today = new Date().toISOString().slice(0,10);
+        await dbLayer.markAttendance(today, id, status);
+        const statusText = status === 'present' ? 'حاضر' : 'غائب';
+        toast.show(`تم تسجيل ${statusText} للطفل بنجاح!`, 'success');
+        refreshAll();
+      } catch (error) {
+        toast.show('حدث خطأ أثناء تسجيل الحضور', 'error');
+      }
+    }
+
+    async function refreshPayments() {
+      const [children, pays] = await Promise.all([dbLayer.listChildren(), dbLayer.getPayments()]);
+      paymentsList.innerHTML = '';
+      // counts for dashboard
+      let late = 0;
+      for (const p of pays) if (p.status === 'متأخر') late++;
+
+      for (const p of pays) {
+        const ch = children.find(c => c.id === p.childId);
+        if (!ch) continue;
+        const rest = (Number(p.amountDue)||0) - (Number(p.amountPaid)||0);
+        const st = p.status === 'مدفوع'
+          ? `<span class="badge bg-green-200 text-green-800">مدفوع</span>`
+          : `<span class="badge bg-red-200 text-red-800">متأخر</span>`;
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition-colors duration-200';
+        tr.innerHTML = `
+          <td class="p-4 font-medium text-gray-800">${ch.fullName}</td>
+          <td class="p-4">
+            <input type="number" class="w-32 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200" value="${p.amountDue}" data-id="${p.childId}" data-field="due" min="0">
+          </td>
+          <td class="p-4">
+            <input type="number" class="w-32 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200" value="${p.amountPaid}" data-id="${p.childId}" data-field="paid" min="0">
+          </td>
+          <td class="p-4 font-semibold ${rest > 0 ? 'text-red-600' : 'text-green-600'}">${rest} د.م.</td>
+          <td class="p-4">${st}</td>
+          <td class="p-4">
+            <button class="update-payment-btn bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-md" data-id="${p.childId}">
+              <i class="fas fa-save ml-1"></i>تحديث
+            </button>
+          </td>
+        `;
+        paymentsList.appendChild(tr);
+      }
+      // update dashboard late count here (but we also recalc globally in refreshDashboard)
+      return late;
+    }
+
+    async function refreshDashboard() {
+      const today = new Date().toISOString().slice(0,10);
+      const [children, todayAtt, pays] = await Promise.all([
+        dbLayer.listChildren(),
+        dbLayer.getAttendanceByDate(today),
+        dbLayer.getPayments()
+      ]);
+      // present count
+      const present = todayAtt.filter(a => a.status === 'present').length;
+      presentCount.textContent = present;
+      totalChildrenCount.textContent = children.length;
+
+      const lateList = pays.filter(p => p.status === 'متأخر');
+      latePaymentCount.textContent = lateList.length;
+
+      latePaymentList.innerHTML = '';
+      if (lateList.length === 0) {
+        latePaymentList.innerHTML = `<p class="text-gray-500">لا توجد مدفوعات متأخرة. عمل رائع!</p>`;
+      } else {
+        for (const p of lateList) {
+          const ch = children.find(c => c.id === p.childId);
+          if (!ch) continue;
+          const rest = (Number(p.amountDue)||0) - (Number(p.amountPaid)||0);
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center bg-red-50 p-4 rounded-xl border border-red-200 hover:bg-red-100 transition-all duration-200';
+          row.innerHTML = `
+            <div class="flex items-center space-x-3 space-x-reverse">
+              <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-red-600 text-sm"></i>
+              </div>
+              <p class="font-medium text-gray-800">${ch.fullName}</p>
+            </div>
+            <span class="text-red-600 font-semibold bg-red-100 px-3 py-1 rounded-lg">${rest} د.م.</span>
+          `;
+          latePaymentList.appendChild(row);
+        }
+      }
+    }
+
+    async function exportEncryptedBackup() {
+      const key = dbLayer.getKey();
+      if (!key) {
+        toast.show('قم بتسجيل الدخول أولاً.', 'warning');
+        return;
+      }
+      
+      try {
+        const [children, payments, attendance] = await Promise.all([
+          dbLayer.listChildren(),
+          dbLayer._getAll('payments'),
+          dbLayer._getAll('attendance')
+        ]);
+        const encObj = await utils.encryptJSON(key, { children, payments, attendance });
+        const blob = new Blob([JSON.stringify(encObj)], {type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `hadanati-backup-${new Date().toISOString().slice(0,10)}.had.json`;
+        a.click();
+        toast.show('تم تصدير النسخة الاحتياطية بنجاح!', 'success');
+      } catch (error) {
+        toast.show('حدث خطأ أثناء التصدير', 'error');
+      }
+    }
+
+    async function importEncryptedBackup(ev) {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      const key = dbLayer.getKey();
+      if (!key) return alert('قم بتسجيل الدخول أولاً.');
+      const text = await file.text();
+      try {
+        const encObj = JSON.parse(text);
+        const data = await utils.decryptJSON(key, encObj);
+        // clear and re-insert
+        await new Promise((res, rej) => {
+          const t = indexedDB.open('hadanati_db');
+          t.onsuccess = async (e) => {
+            const db = e.target.result;
+            const tx = db.transaction(['children','payments','attendance'], 'readwrite');
+            ['children','payments','attendance'].forEach(s => tx.objectStore(s).clear());
+            tx.oncomplete = async () => {
+              // children (re-add with encryption)
+              for (const c of data.children || []) await dbLayer.addChild(c);
+              // payments (overwrite amounts/status)
+              for (const p of data.payments || []) await dbLayer.updatePayment(p.childId, p.amountDue, p.amountPaid);
+              // attendance (bulk put)
+              const allAtt = data.attendance || [];
+              for (const a of allAtt) await dbLayer.markAttendance(a.date, a.childId, a.status);
+                      await refreshAll();
+        toast.show('تم الاستيراد بنجاح!', 'success');
+        res();
+      };
+      tx.onerror = () => rej(tx.error);
+    };
+    t.onerror = () => rej(t.error);
+  });
+} catch (e) {
+  console.error(e);
+  toast.show('فشل الاستيراد. تأكد من الملف وكلمة المرور.', 'error');
+} finally {
+  ev.target.value = '';
+}
+    }
+
+    async function refreshAll() {
+      const loading = toast.showLoading('جاري تحديث البيانات...');
+      
+      try {
+        await Promise.all([
+          refreshChildrenTable(),
+          refreshAttendance(),
+          refreshPayments()
+        ]);
+        await refreshDashboard();
+        toast.hideLoading(loading);
+      } catch (error) {
+        toast.hideLoading(loading);
+        toast.show('حدث خطأ أثناء تحديث البيانات', 'error');
+      }
+    }
+
+    // public
+    return { refreshAll };
+  })();
+
+  // =========
+  // Password Toggle & Strength
+  // =========
+  const passwordToggle = (() => {
+    function init() {
+      const toggleNewPass = document.getElementById('toggle-new-pass');
+      const togglePass = document.getElementById('toggle-pass');
+      const newPassInput = document.getElementById('new-admin-pass');
+      const passInput = document.getElementById('admin-pass');
+      
+      if (toggleNewPass && newPassInput) {
+        toggleNewPass.onclick = () => {
+          const type = newPassInput.type === 'password' ? 'text' : 'password';
+          newPassInput.type = type;
+          toggleNewPass.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        };
+        
+        // Password strength checker
+        newPassInput.addEventListener('input', checkPasswordStrength);
+      }
+      
+      if (togglePass && passInput) {
+        togglePass.onclick = () => {
+          const type = passInput.type === 'password' ? 'text' : 'password';
+          passInput.type = type;
+          togglePass.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        };
+      }
+    }
+    
+    function checkPasswordStrength(e) {
+      const password = e.target.value;
+      const strengthBars = document.querySelectorAll('[data-strength]');
+      const strengthText = document.getElementById('strength-text');
+      
+      let score = 0;
+      let feedback = '';
+      
+      if (password.length >= 8) score++;
+      if (/[a-z]/.test(password)) score++;
+      if (/[A-Z]/.test(password)) score++;
+      if (/[0-9]/.test(password)) score++;
+      if (/[^A-Za-z0-9]/.test(password)) score++;
+      
+      // Update bars
+      strengthBars.forEach((bar, index) => {
+        if (index < score) {
+          if (score <= 2) {
+            bar.style.backgroundColor = '#ef4444'; // red
+            feedback = 'ضعيفة';
+          } else if (score <= 3) {
+            bar.style.backgroundColor = '#f59e0b'; // yellow
+            feedback = 'متوسطة';
+          } else {
+            bar.style.backgroundColor = '#10b981'; // green
+            feedback = 'قوية';
+          }
+        } else {
+          bar.style.backgroundColor = '#e5e7eb'; // gray
+        }
+      });
+      
+      strengthText.textContent = feedback;
+    }
+    
+    return { init };
+  })();
+
+  // =========
+  // Boot
+  // =========
+  (async function boot(){
+    await dbLayer.openDB();
+    
+    // Initialize systems
+    theme.init();
+    passwordToggle.init();
+    
+    // Init current date label
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('ar-MA', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    
+    // default section
+    ui.showSection('dashboard');
+    
+    // Start auth flow
+    auth.init();
+    
+    // Initialize form validation
+    setTimeout(() => {
+      initFormValidation();
+    }, 500);
+    
+    // Show welcome message
+    setTimeout(() => {
+      toast.show('مرحباً بك في نظام إدارة حضانة الثوبة!', 'info', 3000);
+    }, 1000);
+  })();
+  </script>
+</body>
+</html>
