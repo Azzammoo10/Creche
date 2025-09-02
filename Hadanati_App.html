@@ -46,7 +46,10 @@
     .modal-backdrop { 
       display:none; 
       position:fixed; 
-      inset:0; 
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background:rgba(0,0,0,.6); 
       z-index:40; 
       backdrop-filter: blur(4px);
@@ -56,11 +59,14 @@
     .modal { 
       display:none; 
       position:fixed; 
-      inset-inline-start:50%; 
-      inset-block-start:50%; 
-      transform:translate(-50%, -50%); 
+      left: 50%; 
+      top: 50%; 
+      transform: translate(-50%, -50%); 
       z-index:50; 
       animation: slideIn 0.3s ease;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     
     .active-nav { background-color:var(--primary-color); color:#fff; }
@@ -194,11 +200,11 @@
     @keyframes slideIn {
       from { 
         opacity: 0;
-        transform: translate(-50%, -60%);
+        transform: translate(-50%, -60%) scale(0.95);
       }
       to { 
         opacity: 1;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%) scale(1);
       }
     }
     
@@ -225,6 +231,35 @@
       
       .mobile-menu-toggle {
         display: block;
+      }
+      
+      /* Modal mobile improvements */
+      .modal {
+        width: 95vw !important;
+        margin: 0 2.5vw;
+        left: 0;
+        transform: translateY(-50%);
+        top: 50%;
+      }
+      
+      /* Auth modal mobile specific */
+      #auth-modal {
+        padding: 1.5rem;
+        max-height: 85vh;
+      }
+      
+      #auth-modal .w-20 {
+        width: 4rem;
+        height: 4rem;
+      }
+      
+      #auth-modal h2 {
+        font-size: 1.5rem;
+      }
+      
+      /* Form inputs mobile */
+      input, select, textarea {
+        font-size: 16px !important; /* Prevents zoom on iOS */
       }
     }
     
@@ -699,7 +734,11 @@
     }
 
     function show(el) { el.style.display = 'block'; document.getElementById('modal-backdrop').style.display = 'block'; }
-    function hide(el) { el.style.display = 'none'; document.getElementById('modal-backdrop').style.display = 'none'; }
+    function hide(el) { 
+      if (el) el.style.display = 'none'; 
+      const backdrop = document.getElementById('modal-backdrop');
+      if (backdrop) backdrop.style.display = 'none'; 
+    }
 
     return { showSection, show, hide };
   })();
@@ -1121,6 +1160,15 @@
           !sidebar.contains(e.target) && 
           !mobileMenuToggle.contains(e.target)) {
         sidebar.classList.remove('open');
+      }
+    });
+    
+    // Close modals on mobile when clicking backdrop
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) {
+        ui.hide(childModal);
+        ui.hide(viewModal);
+        ui.hide(document.getElementById('auth-modal'));
       }
     });
 
